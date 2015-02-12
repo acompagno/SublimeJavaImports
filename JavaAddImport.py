@@ -1,6 +1,7 @@
 import sublime, sublime_plugin
 import zipfile
 import os
+import StringIO
 
 def get_classes_list(path):
 	if path.endswith(".zip") or path.endswith(".jar"):
@@ -8,6 +9,16 @@ def get_classes_list(path):
 		classesList = zipF.namelist()
 		zipF.close()
 		return classesList
+	elif path.endswith(".aar"):
+		parentAar = zipfile.ZipFile(path, "r")
+		if "classes.jar" in parentAar.namelist():
+			classJarData = StringIO.cStringIO(parentAar.read("classes.jar"))
+			classesJar = zipfile.ZipFile(classJarData)
+			classesList = classesJar.namelist()
+			classesJar.close()
+			parentAar.close()
+			return classesList
+		parentAar.close()
 	else:
 		classesList = []
 		for root, dirs, files in os.walk(path):
